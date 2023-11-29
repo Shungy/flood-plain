@@ -72,8 +72,8 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         // Transfer consideration item from msg.sender to offerer.
         address token = order.consideration.token;
         uint256 amount = order.consideration.amount;
-        if (token == address(0)) payable(order.offerer).sendValue(amount);
-        else IERC20(token).safeTransferFrom(msg.sender, order.offerer, amount);
+        if (token == address(0)) payable(order.recipient).sendValue(amount);
+        else IERC20(token).safeTransferFrom(msg.sender, order.recipient, amount);
 
         // Execute post hooks.
         order.postHooks.execute();
@@ -112,8 +112,8 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
 
         // Transfer declared consideration amount from the fulfiller to the offerer.
         address token = order.consideration.token;
-        if (token == address(0)) payable(order.offerer).sendValue(amount);
-        else IERC20(token).safeTransferFrom(fulfiller, order.offerer, amount);
+        if (token == address(0)) payable(order.recipient).sendValue(amount);
+        else IERC20(token).safeTransferFrom(fulfiller, order.recipient, amount);
 
         // Execute post hooks.
         order.postHooks.execute();
@@ -160,8 +160,8 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
 
             // Transfer declared consideration amount from the fulfiller to the offerer.
             address token = order.consideration.token;
-            if (token == address(0)) payable(order.offerer).sendValue(amount);
-            else IERC20(token).safeTransferFrom(fulfiller, order.offerer, amount);
+            if (token == address(0)) payable(order.recipient).sendValue(amount);
+            else IERC20(token).safeTransferFrom(fulfiller, order.recipient, amount);
 
             // Execute post hooks.
             order.postHooks.execute();
