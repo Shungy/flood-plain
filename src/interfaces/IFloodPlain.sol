@@ -14,7 +14,7 @@ interface IFloodPlain {
 
     error ArrayLengthMismatch();
 
-    event OrderFulfilled(address indexed offerer, uint256 indexed nonce, address indexed fulfiller);
+    event OrderFulfilled(address indexed offerer, uint256 indexed nonce, address indexed fulfiller, uint256 amountOut);
 
     struct SignedOrder {
         Order order;

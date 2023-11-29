@@ -33,21 +33,21 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         PERMIT2 = ISignatureTransfer(permit2);
     }
 
-    function getOrderStatus(Order calldata order) public view returns (bool /* isValid */) {
+    function getOrderStatus(Order calldata order) public view returns (bool /* isValid */ ) {
         if (block.timestamp > order.deadline) return false;
         if (getNonceStatus(order.offerer, order.nonce)) return true;
         else return false;
     }
 
-    function getNonceStatus(address user, uint256 nonce) public view returns (bool /* isValid */) {
+    function getNonceStatus(address user, uint256 nonce) public view returns (bool /* isValid */ ) {
         return PERMIT2.nonceBitmap(user, uint248(nonce >> 8)) & (1 << uint8(nonce)) == 0;
     }
 
-    function getPermitHash(Order calldata order) external view returns (bytes32 /* permitHash */) {
+    function getPermitHash(Order calldata order) external view returns (bytes32 /* permitHash */ ) {
         return order.hashAsWitness(address(this));
     }
 
-    function getOrderHash(Order calldata order) external pure returns (bytes32 /* orderHash */) {
+    function getOrderHash(Order calldata order) external pure returns (bytes32 /* orderHash */ ) {
         return order.hash();
     }
 
@@ -59,8 +59,9 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         bytes32 orderHash = order.hash();
 
         // Check zone accepts the fulfiller. Fulfiller is msg.sender in direct fills.
-        if (order.zone != address(0))
+        if (order.zone != address(0)) {
             if (!(IZone(order.zone).validate(msg.sender))) revert ZoneDenied();
+        }
 
         // Execute pre hooks.
         order.preHooks.execute();
@@ -78,14 +79,13 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         order.postHooks.execute();
 
         // Emit an event signifying that the order has been fulfilled.
-        emit OrderFulfilled(order.offerer, order.nonce, msg.sender);
+        emit OrderFulfilled(order.offerer, order.nonce, msg.sender, amount);
     }
 
-    function fulfillOrder(
-        SignedOrder calldata package,
-        address fulfiller,
-        bytes calldata swapData
-    ) external nonReentrant {
+    function fulfillOrder(SignedOrder calldata package, address fulfiller, bytes calldata swapData)
+        external
+        nonReentrant
+    {
         // Get order component from calldata.
         Order calldata order = package.order;
 
@@ -93,8 +93,9 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         bytes32 orderHash = order.hash();
 
         // Check zone accepts the fulfiller. Fulfiller is msg.sender in this case.
-        if (order.zone != address(0))
+        if (order.zone != address(0)) {
             if (!(IZone(order.zone).validate(msg.sender))) revert ZoneDenied();
+        }
 
         // Execute pre hooks.
         order.preHooks.execute();
@@ -103,12 +104,8 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         _permitTransferOffer(order, package.signature, orderHash, msg.sender);
 
         // Call fulfiller to perform swaps and return the sourced consideration amount.
-        uint256 amount = IFulfiller(payable(fulfiller)).sourceConsideration(
-            SELECTOR_EXTENSION,
-            order,
-            msg.sender,
-            swapData
-        );
+        uint256 amount =
+            IFulfiller(payable(fulfiller)).sourceConsideration(SELECTOR_EXTENSION, order, msg.sender, swapData);
 
         // Ensure sufficient consideration amount is sourced by fulfiller.
         if (amount < order.consideration.amount) revert InsufficientAmountReceived();
@@ -122,22 +119,22 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         order.postHooks.execute();
 
         // Emit an event signifying that the order has been fulfilled.
-        emit OrderFulfilled(order.offerer, order.nonce, msg.sender);
+        emit OrderFulfilled(order.offerer, order.nonce, msg.sender, amount);
     }
 
-    function fulfillOrders(
-        SignedOrder[] calldata packages,
-        address fulfiller,
-        bytes calldata swapData
-    ) external nonReentrant {
+    function fulfillOrders(SignedOrder[] calldata packages, address fulfiller, bytes calldata swapData)
+        external
+        nonReentrant
+    {
         Order[] memory orders = new Order[](packages.length);
         for (uint256 i; i < packages.length; ++i) {
             // Get order component from calldata.
             Order calldata order = packages[i].order;
 
             // Check zone accepts the fulfiller.
-            if (order.zone != address(0))
+            if (order.zone != address(0)) {
                 if (!(IZone(order.zone).validate(fulfiller))) revert ZoneDenied();
+            }
 
             // Execute pre hooks.
             order.preHooks.execute();
@@ -149,12 +146,8 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
             orders[i] = order;
         }
 
-        uint256[] memory amounts = IFulfiller(payable(fulfiller)).sourceConsiderations(
-            SELECTOR_EXTENSION,
-            orders,
-            msg.sender,
-            swapData
-        );
+        uint256[] memory amounts =
+            IFulfiller(payable(fulfiller)).sourceConsiderations(SELECTOR_EXTENSION, orders, msg.sender, swapData);
 
         if (packages.length != amounts.length) revert ArrayLengthMismatch();
 
@@ -174,25 +167,21 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
             order.postHooks.execute();
 
             // Emit an event signifying that the order has been fulfilled.
-            emit OrderFulfilled(order.offerer, order.nonce, fulfiller);
+            emit OrderFulfilled(order.offerer, order.nonce, fulfiller, amount);
         }
     }
 
-    function _permitTransferOffer(
-        Order calldata order,
-        bytes calldata signature,
-        bytes32 orderHash,
-        address to
-    ) internal {
+    function _permitTransferOffer(Order calldata order, bytes calldata signature, bytes32 orderHash, address to)
+        internal
+    {
         // Ensure there are no duplicate items in offer to simplify calculations in fulfillers.
         Item[] calldata offer = order.offer;
         if (offer.hasDuplicates()) revert DuplicateItems();
 
         // Construct Permit2 data.
-        ISignatureTransfer.TokenPermissions[]
-            memory permitted = new ISignatureTransfer.TokenPermissions[](offer.length);
-        ISignatureTransfer.SignatureTransferDetails[]
-            memory transferDetails = new ISignatureTransfer.SignatureTransferDetails[](
+        ISignatureTransfer.TokenPermissions[] memory permitted = new ISignatureTransfer.TokenPermissions[](offer.length);
+        ISignatureTransfer.SignatureTransferDetails[] memory transferDetails =
+        new ISignatureTransfer.SignatureTransferDetails[](
                 offer.length
             );
         for (uint256 i; i < offer.length; ++i) {

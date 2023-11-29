@@ -9,8 +9,10 @@ library OrderHash {
 
     string internal constant _HOOK_STRING = "Hook(address target,bytes data)";
     string internal constant _ITEM_STRING = "Item(address token,uint256 amount)";
-    string internal constant _ORDER_STRING = "Order(address offerer,address zone,address recipient,Item[] offer,Item consideration,uint256 deadline,uint256 nonce,Hook[] preHooks,Hook[] postHooks)";
-    string internal constant _PERMIT_STRING = "PermitBatchWitnessTransferFrom(TokenPermissions[] permitted,address spender,uint256 nonce,uint256 deadline,Order witness)";
+    string internal constant _ORDER_STRING =
+        "Order(address offerer,address zone,address recipient,Item[] offer,Item consideration,uint256 deadline,uint256 nonce,Hook[] preHooks,Hook[] postHooks)";
+    string internal constant _PERMIT_STRING =
+        "PermitBatchWitnessTransferFrom(TokenPermissions[] permitted,address spender,uint256 nonce,uint256 deadline,Order witness)";
     string internal constant _TOKEN_PERMISSIONS_STRING = "TokenPermissions(address token,uint256 amount)";
 
     string internal constant _PERMIT_STRING_VARIABLE_END = "Order witness)";
@@ -18,20 +20,14 @@ library OrderHash {
     bytes32 public constant _ITEM_TYPEHASH = keccak256(bytes(_ITEM_STRING));
     bytes32 public constant _HOOK_TYPEHASH = keccak256(bytes(_HOOK_STRING));
     bytes32 public constant _ORDER_TYPEHASH = keccak256(abi.encodePacked(_ORDER_STRING, _HOOK_STRING, _ITEM_STRING));
-    bytes32 public constant _PERMIT_TYPEHASH = keccak256(abi.encodePacked(
-        _PERMIT_STRING,
-        _HOOK_STRING,
-        _ITEM_STRING,
-        _ORDER_STRING,
-        _TOKEN_PERMISSIONS_STRING
-    ));
-    string public constant _WITNESS_TYPESTRING = string(abi.encodePacked(
-        _PERMIT_STRING_VARIABLE_END,
-        _HOOK_STRING,
-        _ITEM_STRING,
-        _ORDER_STRING,
-        _TOKEN_PERMISSIONS_STRING
-    ));
+    bytes32 public constant _PERMIT_TYPEHASH = keccak256(
+        abi.encodePacked(_PERMIT_STRING, _HOOK_STRING, _ITEM_STRING, _ORDER_STRING, _TOKEN_PERMISSIONS_STRING)
+    );
+    string public constant _WITNESS_TYPESTRING = string(
+        abi.encodePacked(
+            _PERMIT_STRING_VARIABLE_END, _HOOK_STRING, _ITEM_STRING, _ORDER_STRING, _TOKEN_PERMISSIONS_STRING
+        )
+    );
 
     function hash(IFloodPlain.Hook calldata hook) internal pure returns (bytes32) {
         return keccak256(abi.encode(_HOOK_TYPEHASH, hook.target, hook.data));
@@ -45,17 +41,23 @@ library OrderHash {
         // Hash offer array.
         uint256 length = order.offer.length;
         bytes32[] memory offerHashes = new bytes32[](length);
-        for (uint256 i; i < length; ++i) offerHashes[i] = hash(order.offer[i]);
+        for (uint256 i; i < length; ++i) {
+            offerHashes[i] = hash(order.offer[i]);
+        }
 
         // Hash preHooks array.
         length = order.preHooks.length;
         bytes32[] memory preHooksHashes = new bytes32[](length);
-        for (uint256 i; i < length; ++i) preHooksHashes[i] = hash(order.preHooks[i]);
+        for (uint256 i; i < length; ++i) {
+            preHooksHashes[i] = hash(order.preHooks[i]);
+        }
 
         // Hash postHooks array.
         length = order.postHooks.length;
         bytes32[] memory postHooksHashes = new bytes32[](length);
-        for (uint256 i; i < length; ++i) postHooksHashes[i] = hash(order.postHooks[i]);
+        for (uint256 i; i < length; ++i) {
+            postHooksHashes[i] = hash(order.postHooks[i]);
+        }
 
         // Derive and return the order hash as specified by EIP-712.
         return keccak256(
@@ -85,8 +87,7 @@ library OrderHash {
 
             tokenPermissionHashes[i] = keccak256(
                 abi.encode(
-                    PermitHash._TOKEN_PERMISSIONS_TYPEHASH,
-                    ISignatureTransfer.TokenPermissions(item.token, item.amount)
+                    PermitHash._TOKEN_PERMISSIONS_TYPEHASH, ISignatureTransfer.TokenPermissions(item.token, item.amount)
                 )
             );
         }

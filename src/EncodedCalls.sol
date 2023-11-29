@@ -23,7 +23,7 @@ abstract contract EncodedCalls is IEncodedCalls {
         // ensure such byte exists.
 
         // Get the decoded decoder ID, and the new calldata ptr.
-        (uint256 decoderId, uint256 ptr) = LEB128.rawDecodeUint({ ptr: 1 });
+        (uint256 decoderId, uint256 ptr) = LEB128.rawDecodeUint({ptr: 1});
 
         // Get the decoder.
         address decoder = decoders[decoderId];

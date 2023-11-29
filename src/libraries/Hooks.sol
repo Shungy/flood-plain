@@ -23,6 +23,8 @@ library Hooks {
     }
 
     function execute(IFloodPlain.Hook[] calldata hooks) internal {
-        for (uint256 i; i < hooks.length; ++i) execute(hooks[i]);
+        for (uint256 i; i < hooks.length; ++i) {
+            execute(hooks[i]);
+        }
     }
 }
