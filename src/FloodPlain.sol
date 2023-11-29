@@ -59,9 +59,7 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         bytes32 orderHash = order.hash();
 
         // Check zone accepts the fulfiller. Fulfiller is msg.sender in direct fills.
-        if (order.zone != address(0)) {
-            if (!(IZone(order.zone).validate(msg.sender))) revert ZoneDenied();
-        }
+        if (order.zone != address(0)) if (!(IZone(order.zone).validate(msg.sender))) revert ZoneDenied();
 
         // Execute pre hooks.
         order.preHooks.execute();
@@ -93,9 +91,7 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         bytes32 orderHash = order.hash();
 
         // Check zone accepts the fulfiller. Fulfiller is msg.sender in this case.
-        if (order.zone != address(0)) {
-            if (!(IZone(order.zone).validate(msg.sender))) revert ZoneDenied();
-        }
+        if (order.zone != address(0)) if (!(IZone(order.zone).validate(msg.sender))) revert ZoneDenied();
 
         // Execute pre hooks.
         order.preHooks.execute();
@@ -132,9 +128,7 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
             Order calldata order = packages[i].order;
 
             // Check zone accepts the fulfiller.
-            if (order.zone != address(0)) {
-                if (!(IZone(order.zone).validate(fulfiller))) revert ZoneDenied();
-            }
+            if (order.zone != address(0)) if (!(IZone(order.zone).validate(fulfiller))) revert ZoneDenied();
 
             // Execute pre hooks.
             order.preHooks.execute();
@@ -181,9 +175,7 @@ contract FloodPlain is IFloodPlain, EncodedCalls, ReentrancyGuard {
         // Construct Permit2 data.
         ISignatureTransfer.TokenPermissions[] memory permitted = new ISignatureTransfer.TokenPermissions[](offer.length);
         ISignatureTransfer.SignatureTransferDetails[] memory transferDetails =
-        new ISignatureTransfer.SignatureTransferDetails[](
-                offer.length
-            );
+            new ISignatureTransfer.SignatureTransferDetails[](offer.length);
         for (uint256 i; i < offer.length; ++i) {
             Item calldata item = offer[i];
             permitted[i] = ISignatureTransfer.TokenPermissions(item.token, item.amount);

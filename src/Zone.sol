@@ -8,6 +8,9 @@ contract Zone is IZone, Ownable2Step {
     mapping(address fulfiller => bool enabled) public validate;
     FeeInfo public fee;
 
+    event FeeUpdated(FeeInfo indexed newFee);
+    event FulfillerUpdated(address indexed fulfiller, bool indexed valid);
+
     constructor(address admin) Ownable(admin) {}
 
     function setFee(FeeInfo calldata newFee) external onlyOwner {

@@ -10,7 +10,11 @@ library Hooks {
         address target = hook.target;
         bytes calldata data = hook.data;
 
-        require(abi.decode(data, (bytes32)) << 32 != SELECTOR_EXTENSION);
+        bytes28 extension;
+        assembly ("memory-safe") {
+            extension := shl(32, calldataload(0))
+        }
+        require(extension != SELECTOR_EXTENSION);
 
         assembly ("memory-safe") {
             let fmp := mload(0x40)

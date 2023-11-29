@@ -1,23 +1,23 @@
 [profile.default]
-remappings = [
-  "@openzeppelin/=lib/openzeppelin-contracts/contracts/",
-  "permit2/=lib/permit2/",
-]
-solc_version = "0.8.23"
-ffi = true
+  ffi = true
+  remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts/contracts/",
+    "permit2/=lib/permit2/",
+  ]
+  solc_version = "0.8.23"
 
 [profile.ci]
-libs = ["lib"]
-optimizer = false
-out = "out"
-fuzz_runs = 5000
+  fuzz_runs = 5000
+  libs = ["lib"]
+  optimizer = false
+  out = "out"
 
 [profile.deploy]
-optimizer = true
-optimizer_runs = 10_000_000
-via_ir = true
-fs_permissions = [{ access = "read", path = "./out" }]
+  fs_permissions = [{ access = "read", path = "./out" }]
+  optimizer = true
+  optimizer_runs = 10_000_000
+  via_ir = true
 
 [etherscan]
-mainnet = { key = "${ETHERSCAN_MAINNET}" }
-arbitrum = { key = "${ETHERSCAN_ARBITRUM}" }
+  arbitrum = { key = "${ETHERSCAN_ARBITRUM}" }
+  mainnet = { key = "${ETHERSCAN_MAINNET}" }

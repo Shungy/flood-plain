@@ -1,36 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {IFloodPlain} from "./IFloodPlain.sol";
+
 interface IZone {
     struct FeeInfo {
         address recipient;
-        uint96 bps;
+        uint64 bps;
     }
-
-    /**
-     * @notice Event emitted when fee BPS or fee recipient is changed.
-     */
-    event FeeUpdated(FeeInfo indexed newFee);
-
-    /**
-     * @notice Event emitted when a Fulfiller is added or removed from the Zone.
-     */
-    event FulfillerUpdated(address indexed fulfiller, bool indexed valid);
-
-    /**
-     * @notice Restricted function to set the fee BPS that should be taken from consideration.
-     *
-     * @param fee The feeBps and the fee recipient. The fulfiller should send
-     * `considerationAmount * fee.bps / 10000` to the `fee.recipient` on each fulfillment.
-     */
-    function setFee(FeeInfo calldata fee) external;
-
-    /**
-     * @notice Restricted function to add or remove a fulfiller from the zone.
-     *
-     * @param enabled True if fulfiller is added to the zone, false if fulfiller is removed.
-     */
-    function setFulfiller(address fulfiller, bool enabled) external;
 
     /**
      * @notice Check if a fulfiller belongs to the zone.
@@ -54,5 +31,5 @@ interface IZone {
      * @return The address of the fee recipient who should receive the fees.
      * @return The fee cut in BPS that should be taken from the output tokens.
      */
-    function fee() external view returns (address, uint96);
+    function fee() external view returns (address, uint64);
 }
