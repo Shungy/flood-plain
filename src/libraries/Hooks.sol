@@ -12,7 +12,7 @@ library Hooks {
 
         bytes28 extension;
         assembly ("memory-safe") {
-            extension := shl(32, calldataload(0))
+            extension := shl(32, calldataload(data.offset))
         }
         require(extension != SELECTOR_EXTENSION);
 
