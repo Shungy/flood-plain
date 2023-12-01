@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {IFloodPlain} from "../IFloodPlain.sol";
+import {IFloodPlain} from "../interfaces/IFloodPlain.sol";
 
 library Duplicates {
     function hasDuplicates(IFloodPlain.Item[] calldata items) internal pure returns (bool) {
