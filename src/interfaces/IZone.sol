@@ -29,7 +29,7 @@ interface IZone {
      * @dev It is up to Fulfiller to respect the fees set in a zone.
      *
      * @return The address of the fee recipient who should receive the fees.
-     * @return The fee cut in BPS that should be taken from the output tokens.
+     *         The fee cut in BPS that should be taken from the output tokens.
      */
-    function fee() external view returns (address, uint64);
+    function fee(IFloodPlain.Order calldata order, address fulfiller) external view returns (FeeInfo memory);
 }
