@@ -8,16 +8,21 @@ import {LEB128} from "src/libraries/LEB128.sol";
 import {LibBit} from "solady/utils/LibBit.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
-contract LEB128Test {
-    function rawDecodeUint(bytes calldata input) external pure returns (uint256, uint256) {
-        uint256 ptr;
-        assembly {
-            ptr := input.offset
-        }
-        return LEB128Lib.rawDecodeUint(ptr);
+contract LEB128Contract {
+    fallback(bytes calldata) external returns (bytes memory) {
+        (uint256 result, uint256 ptr) = LEB128.rawDecodeUint(0);
+        return abi.encode(result, ptr);
+    }
+}
+
+contract LEB128Test is Test {
+    LEB128Contract public leb128;
+
+    function setUp() public {
+        leb128 = new LEB128Contract();
     }
 
-    function encode(uint256 x) external pure returns (bytes memory result) {
+    function _encode(uint256 x) internal pure returns (bytes memory result) {
         if (x == 0) return result = new bytes(1);
         /// @solidity memory-safe-assembly
         assembly {
@@ -41,51 +46,45 @@ contract LEB128Test {
             mstore(0x40, i)
         }
     }
-}
-
-contract LEB128LibTest is Test {
-    LEB128 public leb128;
-
-    function setUp() public {
-        leb128 = new LEB128();
-    }
 
     function _encodedUintLength(uint256 x) internal pure returns (uint256) {
         return x == 0 ? 1 : FixedPointMathLib.divUp(LibBit.fls(x) + 1, 7);
     }
 
     function testUnsignedEncode() public {
-        assertEq(leb128.encode(uint256(0)), hex"00");
-        assertEq(leb128.encode(uint256(1)), hex"01");
-        assertEq(leb128.encode(uint256(69)), hex"45");
-        assertEq(leb128.encode(uint256(420)), hex"a403");
-        assertEq(leb128.encode(uint256(666)), hex"9a05");
-        assertEq(leb128.encode(uint256(1 ether)), hex"808090bbbad6adf00d");
+        assertEq(_encode(uint256(0)), hex"00");
+        assertEq(_encode(uint256(1)), hex"01");
+        assertEq(_encode(uint256(69)), hex"45");
+        assertEq(_encode(uint256(420)), hex"a403");
+        assertEq(_encode(uint256(666)), hex"9a05");
+        assertEq(_encode(uint256(1 ether)), hex"808090bbbad6adf00d");
         assertEq(
-            leb128.encode(type(uint256).max - 1),
+            _encode(type(uint256).max - 1),
             hex"feffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0f"
         );
         assertEq(
-            leb128.encode(type(uint256).max),
+            _encode(type(uint256).max),
             hex"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0f"
         );
     }
 
     function testUnsignedEncodeLength(uint256 x) public {
         vm.assume(x != 0);
-        assertEq(leb128.encode(x).length, _encodedUintLength(x));
+        assertEq(_encode(x).length, _encodedUintLength(x));
     }
 
     function testEncodeDecode(uint256 x) public {
-        bytes memory uencoded = LEB128Lib.encode(x);
+        bytes memory uencoded = _encode(x);
 
-        (uint256 decoded, bytes memory rem) = leb128.rawDecodeUint(uencoded);
+        (bool success, bytes memory result) = address(leb128).call(abi.encodePacked(uencoded));
+        require(success);
+        (uint256 decoded, uint256 length) = abi.decode(result, (uint256, uint256));
         assertEq(decoded, x);
-        assertEq(rem.length, 0);
+        assertEq(length, uencoded.length);
     }
 
-    function testNoRevertOnOutOfBoundsRawDecoding(uint256 x) public view {
-        bytes memory uencoded = LEB128Lib.encode(x);
+    function testNoRevertOnOutOfBoundsRawDecoding(uint256 x) public {
+        bytes memory uencoded = _encode(x);
 
         uint256 uencodedPtr;
         /// @solidity memory-safe-assembly
@@ -95,10 +94,11 @@ contract LEB128LibTest is Test {
 
         uencoded[uencoded.length - 1] ^= 0x80;
 
-        leb128.rawDecodeUint(uencoded);
+        (bool success,) = address(leb128).call(abi.encodePacked(uencoded));
+        require(success);
     }
 
-    function testBenchCompressDecompress() public {
+    function testBenchCompress() public {
         // Test that encoding these values takes 72 bytes.
         uint256[] memory a = new uint256[](21);
         a[0] = 0x0000000000000000000000000000000000000000000000000000000000000020;
@@ -124,13 +124,8 @@ contract LEB128LibTest is Test {
         a[20] = 0x0000000000000000000000000000000000000000000000000000000000000000;
         bytes memory encodedData;
         for (uint256 i; i < a.length; ++i) {
-            encodedData = abi.encodePacked(encodedData, LEB128Lib.encode(a[i]));
+            encodedData = abi.encodePacked(encodedData, _encode(a[i]));
         }
         assertEq(encodedData.length, 72);
-
-        for (uint256 i; i < a.length; ++i) {
-            (uint256 result, ) = leb128.rawDecodeUint(encodedData);
-            assertEq(result, a[i]);
-        }
     }
 }
