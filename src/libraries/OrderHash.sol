@@ -30,7 +30,7 @@ library OrderHash {
     );
 
     function hash(IFloodPlain.Hook calldata hook) internal pure returns (bytes32) {
-        return keccak256(abi.encode(_HOOK_TYPEHASH, hook.target, hook.data));
+        return keccak256(abi.encode(_HOOK_TYPEHASH, hook.target, keccak256(hook.data)));
     }
 
     function hash(IFloodPlain.Item calldata item) internal pure returns (bytes32) {
