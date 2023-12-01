@@ -1,0 +1,11 @@
+{
+  "name": "flood-contracts",
+  "version": "2.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:Shungy/flood-plain.git",
+  "author": "flood.bid",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.9.0"
+  }
+}
